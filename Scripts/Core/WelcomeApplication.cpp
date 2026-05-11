@@ -2,6 +2,9 @@
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 int main(void)
 {
@@ -68,10 +71,11 @@ int main(void)
 		"#version 330 core\n"
 		"layout (location = 0) in vec4 vertexPosition;\n"
 		"layout (location = 1) in vec4 vertexColor;\n"
-		"out vec4 g_l_vertexColor;"
+		"out vec4 g_l_vertexColor;\n"
+		"uniform mat4 modelTransform;\n"
 		"void main()\n"
 		"{\n"
-		"\tgl_Position = vec4(vertexPosition.x, vertexPosition.y, vertexPosition.z, vertexPosition.w);\n"
+		"\tgl_Position = modelTransform * vec4(vertexPosition.x, vertexPosition.y, vertexPosition.z, vertexPosition.w);\n"
 		"\tg_l_vertexColor = vec4(vertexColor.r, vertexColor.g, vertexColor.b, vertexColor.a);\n"
 		"}\n\0";
 
@@ -168,7 +172,7 @@ int main(void)
 	{
 		if(glfwGetKey(displayerWindowContainer, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
-			glfwSetWindowShouldClose(displayerWindowContainer, true);
+			glfwSetWindowShouldClose(displayerWindowContainer, GL_TRUE);
 		}
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -176,6 +180,15 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shaderProgramIdentifier);
+
+		GLuint modelTransformLocation = glGetUniformLocation(shaderProgramIdentifier, "modelTransform");
+
+		glm::mat4 modelTransform = glm::identity<glm::mat4>();
+		modelTransform = glm::translate(modelTransform, glm::vec3(0.5f, -0.25f, 0.0));
+		modelTransform = glm::rotate(modelTransform, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		modelTransform = glm::scale(modelTransform, glm::vec3(0.5f, 1.0f, 1.0f));
+
+		glUniformMatrix4fv(modelTransformLocation, 1, GL_FALSE, glm::value_ptr(modelTransform));
 
 		glBindVertexArray(vertexArrayIdentifier);
 

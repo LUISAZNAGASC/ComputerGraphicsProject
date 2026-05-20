@@ -1,0 +1,125 @@
+//
+// HelloWorldShader.shader
+// >>>>>>>>>>>>>>>>>>>> VERTEX_SHADER >>>>>>>>>>>>>>>>>>>>
+//
+//#version 330 core
+//
+//layout(location = 0) in vec3 l_l_vertexPosition;
+//
+//layout(location = 1) in vec3 l_l_vertexColor;
+//
+//out vec3 g_l_vertexColor;
+//
+//uniform mat4 m_projectionTransform;
+//
+//uniform mat4 m_cameraTransform;
+//
+//uniform mat4 m_entityTransform;
+//
+//void main()
+//{
+//	gl_Position = vec4(l_l_vertexPosition.x, l_l_vertexPosition.y, l_l_vertexPosition.z, 1.0);
+//	gl_Position = m_projectionTransform * m_cameraTransform * m_entityTransform * gl_Position;
+//
+//	g_l_vertexColor = vec3(l_l_vertexColor.r, l_l_vertexColor.g, l_l_vertexColor.b);
+//}
+//
+//<<<<<<<<<<<<<<<<<<<< VERTEX_SHADER <<<<<<<<<<<<<<<<<<<<
+//
+//>>>>>>>>>>>>>>>>>>>> FRAGMENT_SHADER >>>>>>>>>>>>>>>>>>>>
+//
+//#version 330 core
+//
+//out vec4 g_l_fragmentColor;
+//
+//in vec3 g_l_vertexColor;
+//
+//void main()
+//{
+//	g_l_fragmentColor = vec4(g_l_vertexColor.r, g_l_vertexColor.g, g_l_vertexColor.b, 1.0);
+//}
+//
+//<<<<<<<<<<<<<<<<<<<< FRAGMENT_SHADER <<<<<<<<<<<<<<<<<<<<
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+inline static const std::string AnalyzePipelineDocument(const std::string& pipelineDocumentLocation)
+{
+	std::ifstream pipelineDocumentArchive = std::ifstream(pipelineDocumentLocation, std::ios::in | std::ios::binary);
+
+	if (pipelineDocumentArchive.is_open() == false)
+	{
+		return std::string();
+	}
+
+	const std::istreambuf_iterator<char> pipelineDocumentBeginIterator = std::istreambuf_iterator<char>(pipelineDocumentArchive);
+	const std::istreambuf_iterator<char> pipelineDocumentEndIterator = std::istreambuf_iterator<char>();
+
+	const std::string pipelineDocumentContent = std::string(pipelineDocumentBeginIterator, pipelineDocumentEndIterator);
+
+	pipelineDocumentArchive.close();
+
+	return pipelineDocumentContent;
+}
+
+inline static const std::string ExtractPipelineSegment(const std::string& pipelineDocumentSource, const std::string& documentSegmentName)
+{
+	const std::string pipelineDocumentOpeningTag = ">>>>>>>>>>>>>>>>>>>> " + documentSegmentName + " >>>>>>>>>>>>>>>>>>>>";
+	const std::string pipelineDocumentClosureTag = "<<<<<<<<<<<<<<<<<<<< " + documentSegmentName + " <<<<<<<<<<<<<<<<<<<<";
+
+	const std::string_view pipelineDocumentContent_ = std::string_view(pipelineDocumentSource);
+
+	const std::size_t pipelineDocumentSegmentBegin = pipelineDocumentContent_.find(pipelineDocumentOpeningTag);
+	const std::size_t pipelineDocumentSegmentEnd = pipelineDocumentContent_.find(pipelineDocumentClosureTag, pipelineDocumentSegmentBegin);
+
+	if (pipelineDocumentSegmentBegin == std::string::npos || pipelineDocumentSegmentEnd == std::string::npos)
+	{
+		return std::string();
+	}
+
+	const size_t pipelineDocumentContentBegin = pipelineDocumentSegmentBegin + pipelineDocumentOpeningTag.length();
+	const size_t pipelineDocumentContentLength = pipelineDocumentSegmentEnd - pipelineDocumentContentBegin;
+
+	const std::string_view pipelineDocumentSegment_ = pipelineDocumentContent_.substr(pipelineDocumentContentBegin, pipelineDocumentContentLength);
+
+	const size_t pipelineDocumentTrimBegin = pipelineDocumentSegment_.find_first_not_of("\r\n");
+	const size_t pipelineDocumentTrimEnd = pipelineDocumentSegment_.find_last_not_of("\r\n");
+
+	if (pipelineDocumentTrimBegin == std::string::npos)
+	{
+		return std::string();
+	}
+
+	const std::string pipelineDocumentSegment = std::string(pipelineDocumentSegment_.substr(pipelineDocumentTrimBegin, pipelineDocumentTrimEnd - pipelineDocumentTrimBegin + 1));
+
+	return pipelineDocumentSegment;
+}
+
+int main()
+{
+	std::cout << "====================================================================================================" << std::endl;
+	std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
+	std::cout << "====================================================================================================" << std::endl;
+	std::cout << std::endl;
+
+	std::string pipelineDocumentContent = AnalyzePipelineDocument("HelloWorldShader.shader");
+
+	std::cout << ExtractPipelineSegment(pipelineDocumentContent, "VERTEX_SHADER") << std::endl;
+
+	std::cout << std::endl;
+	std::cout << "====================================================================================================" << std::endl;
+	std::cout << "PRESS [ENTER] KEY TO CLOSE CONSOLE..." << std::endl;
+	std::cout << "====================================================================================================" << std::endl;
+	std::cout << std::endl;
+
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	std::cout << "====================================================================================================" << std::endl;
+	std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
+	std::cout << "====================================================================================================" << std::endl;
+
+	return std::cin.get();
+}

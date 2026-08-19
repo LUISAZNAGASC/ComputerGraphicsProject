@@ -1,0 +1,51 @@
+std::string Shader::AnalyzeDocumentContent(const std::string& documentLocation) const
+{
+	std::ifstream documentArchive = std::ifstream(documentLocation, std::ios::in | std::ios::binary);
+
+	if (documentArchive.is_open() == false)
+	{
+		return std::string();
+	}
+
+	const std::istreambuf_iterator<char> archiveIterator01 = std::istreambuf_iterator<char>(documentArchive);
+	const std::istreambuf_iterator<char> archiveIterator02 = std::istreambuf_iterator<char>();
+
+	const std::string documentContent = std::string(archiveIterator01, archiveIterator02);
+
+	documentArchive.close();
+
+	return documentContent;
+}
+
+std::string Shader::ExtractDocumentSegment(const std::string& documentSource, const std::string& segmentSignature) const
+{
+	const std::string openingIdentifier = ">>>>>>>>>>>>>>>>>>>> " + segmentSignature + " >>>>>>>>>>>>>>>>>>>>";
+	const std::string closureIdentifier = "<<<<<<<<<<<<<<<<<<<< " + segmentSignature + " <<<<<<<<<<<<<<<<<<<<";
+
+	const std::string_view documentContent = std::string_view(documentSource);
+
+	const std::size_t segmentIterator01 = documentContent.find(openingIdentifier);
+	const std::size_t segmentIterator02 = documentContent.find(closureIdentifier, segmentIterator01);
+
+	if (segmentIterator01 == std::string::npos || segmentIterator02 == std::string::npos)
+	{
+		return std::string();
+	}
+
+	const std::size_t contentIterator01 = segmentIterator01 + openingIdentifier.length();
+	const std::size_t contentDimension = segmentIterator02 - contentIterator01;
+
+	const std::string_view originalSegment = documentContent.substr(contentIterator01, contentDimension);
+
+	const std::size_t segmentIterator01 = originalSegment.find_first_not_of("\r\n");
+	const std::size_t segmentIterator2 = originalSegment.find_last_not_of("\r\n");
+
+	if (segmentIterator01 == std::string::npos)
+	{
+		return std::string();
+	}
+
+	const std::string desiredSegment = std::string(originalSegment.substr(segmentIterator01, segmentIterator2 - segmentIterator01 + 1));
+
+	return desiredSegment;
+}
